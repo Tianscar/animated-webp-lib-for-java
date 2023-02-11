@@ -1,0 +1,105 @@
+plugins {
+    id 'java-library'
+    id 'signing'
+    id 'maven-publish'
+}
+
+ext {
+    libraryName = 'Animated WebP Library for Java'
+    libraryGroupName = 'com.tianscar.webp'
+    libraryVendorName = 'Tianscar'
+
+    libraryVersionCode = 1
+    libraryVersionName = '1.0.0'
+
+    librarySourceCompatibility = JavaVersion.VERSION_1_8
+    libraryTargetCompatibility = JavaVersion.VERSION_1_8
+}
+
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+sourceCompatibility = librarySourceCompatibility
+targetCompatibility = libraryTargetCompatibility
+
+group = libraryGroupName
+version = libraryVersionName
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.github.jnr:jnr-ffi:2.2.13'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = libraryGroupName
+            artifactId = rootProject.name
+            version = libraryVersionName
+            from components.java
+            pom {
+                name = libraryName
+                description = 'Animated WebP Library for Java'
+                url = 'https://github.com/Tianscar/animated-webp-lib-for-java'
+                licenses {
+                    license {
+                        name = 'The MIT License'
+                        url = 'https://spdx.org/licenses/MIT.html'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'Tianscar'
+                        name = 'Tiansword Carbonicacid'
+                        email = 'tianscar@protonmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git@github.com/Tianscar/animated-webp-lib-for-java.git'
+                    developerConnection = 'scm:git:git@github.com/Tianscar/animated-webp-lib-for-java.git'
+                    url = 'https://github.com/Tianscar/animated-webp-lib-for-java'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "OSSRH"
+            if (project.version.toString().endsWith("-SNAPSHOT")) {
+                url = "https://s01.oss.sonatype.org/content/repositories/snapshots"
+            } else {
+                url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            }
+            credentials {
+                username = findProperty("ossrhUsername") ?: System.getenv("OSSRH_USERNAME")
+                password = findProperty("ossrhPassword") ?: System.getenv("OSSRH_PASSWORD")
+            }
+        }
+    }
+}
+
+signing {
+    def signingKey = findProperty("signingKey") ?: System.getenv("GPG_KEY")
+    def signingPassword = findProperty("signingPassword") ?:System.getenv("GPG_PASSWORD")
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign(publishing.publications.mavenJava)
+}
+
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}
